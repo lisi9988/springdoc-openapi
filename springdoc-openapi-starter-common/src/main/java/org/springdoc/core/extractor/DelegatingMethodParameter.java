@@ -40,6 +40,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import io.swagger.v3.oas.annotations.Parameter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.slf4j.Logger;
@@ -55,6 +56,7 @@ import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 
 /**
@@ -132,10 +134,11 @@ public class DelegatingMethodParameter extends MethodParameter {
 	 * @param parameters                                   the parameters
 	 * @param optionalDelegatingMethodParameterCustomizers the optional list delegating method parameter customizer
 	 * @param defaultFlatParamObject                       the default flat param object
+	 * @param isRequestBodyParam                           Is RequestBody param boolean.
 	 * @return the method parameter [ ]
 	 */
 	public static MethodParameter[] customize(String[] pNames, MethodParameter[] parameters,
-			Optional<List<DelegatingMethodParameterCustomizer>> optionalDelegatingMethodParameterCustomizers, boolean defaultFlatParamObject) {
+			Optional<List<DelegatingMethodParameterCustomizer>> optionalDelegatingMethodParameterCustomizers, boolean defaultFlatParamObject, boolean isRequestBodyParam) {
 		List<MethodParameter> explodedParameters = new ArrayList<>();
 		for (int i = 0; i < parameters.length; ++i) {
 			MethodParameter p = parameters[i];
@@ -151,9 +154,15 @@ public class DelegatingMethodParameter extends MethodParameter {
 				optionalDelegatingMethodParameterCustomizers.orElseGet(ArrayList::new).forEach(cz -> cz.customizeList(p, flatParams));
 				explodedParameters.addAll(flatParams);
 			}
+			else if (!isRequestBodyParam && !MethodParameterPojoExtractor.isSimpleType(paramClass) && !AbstractRequestService.isRequestTypeToIgnore(paramClass) && !p.hasParameterAnnotation(Parameter.class) && !p.hasParameterAnnotation(RequestParam.class)) {
+				List<MethodParameter> flatParams = new CopyOnWriteArrayList<>();
+				MethodParameterPojoExtractor.extractFrom(paramClass).forEach(flatParams::add);
+				optionalDelegatingMethodParameterCustomizers.orElseGet(ArrayList::new).forEach(cz -> cz.customizeList(p, flatParams));
+				explodedParameters.addAll(flatParams);
+			}
 			else {
 				String name = pNames != null ? pNames[i] : p.getParameterName();
-				explodedParameters.add(new DelegatingMethodParameter(p, name, null, null, false, null, false));
+				explodedParameters.add(new DelegatingMethodParameter(p, name, null, null, !isRequestBodyParam, null, false));
 			}
 		}
 		return explodedParameters.toArray(new MethodParameter[0]);

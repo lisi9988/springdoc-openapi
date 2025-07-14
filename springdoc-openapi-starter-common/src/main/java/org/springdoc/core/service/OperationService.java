@@ -27,15 +27,8 @@
 package org.springdoc.core.service;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
 
 import io.swagger.v3.core.util.AnnotationsUtils;
 import io.swagger.v3.oas.annotations.Hidden;
@@ -131,6 +124,9 @@ public class OperationService {
 
 		if (StringUtils.isNotBlank(apiOperation.description()))
 			operation.setDescription(propertyResolverUtils.resolve(apiOperation.description(), locale));
+
+		if (Objects.nonNull(apiOperation.groups()))
+			operation.setGroups(apiOperation.groups().getSimpleName());
 
 		if (StringUtils.isNotBlank(apiOperation.operationId()))
 			operation.setOperationId(apiOperation.operationId());

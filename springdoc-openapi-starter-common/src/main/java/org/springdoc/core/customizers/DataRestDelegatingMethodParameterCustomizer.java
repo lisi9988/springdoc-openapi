@@ -200,6 +200,11 @@ public class DataRestDelegatingMethodParameterCustomizer implements DelegatingMe
 						}
 
 						@Override
+						public Class<?>[] groups() {
+							return parameter.schema().groups();
+						}
+
+						@Override
 						public Class<? extends Annotation> annotationType() {
 							return parameterSchema.annotationType();
 						}
@@ -447,6 +452,11 @@ public class DataRestDelegatingMethodParameterCustomizer implements DelegatingMe
 						@Override
 						public String $dynamicAnchor() {
 							return parameterSchema.$dynamicAnchor();
+						}
+
+						@Override
+						public String $dynamicRef() {
+							return parameterSchema.$dynamicRef();
 						}
 
 						@Override
@@ -837,6 +847,11 @@ public class DataRestDelegatingMethodParameterCustomizer implements DelegatingMe
 								}
 
 								@Override
+								public String $dynamicRef() {
+									return schema.$dynamicRef();
+								}
+
+								@Override
 								public String contentEncoding() {
 									return schema.contentEncoding();
 								}
@@ -949,6 +964,11 @@ public class DataRestDelegatingMethodParameterCustomizer implements DelegatingMe
 								@Override
 								public SchemaResolution schemaResolution() {
 									return schema.schemaResolution();
+								}
+
+								@Override
+								public Class<?>[] groups() {
+									return schema.groups();
 								}
 							};
 						}

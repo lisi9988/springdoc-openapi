@@ -199,6 +199,7 @@ public class SpecPropertiesCustomizer implements GlobalOpenApiCustomizer {
 						Operation operationToCustomize = operationMap.get(httpMethod);
 						if (operationToCustomize != null) {
 							resolveString(operationToCustomize::description, operationProperties::getDescription);
+							resolveString(operationToCustomize::groups, operationProperties::getGroups);
 							resolveString(operationToCustomize::summary, operationProperties::getSummary);
 							resolveSet(operationToCustomize::tags, operationProperties::getTags);
 						}
@@ -236,6 +237,7 @@ public class SpecPropertiesCustomizer implements GlobalOpenApiCustomizer {
 								resolveString(propSchema::description, propSchemaProperties::getDescription);
 								resolveString(propSchema::title, propSchemaProperties::getTitle);
 								resolveString(propSchema::example, propSchemaProperties::getExample);
+								resolveSet(propSchema::groups, propSchemaProperties::getGroups);
 							}
 						});
 					}

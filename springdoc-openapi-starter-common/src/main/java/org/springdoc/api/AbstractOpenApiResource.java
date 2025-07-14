@@ -504,6 +504,7 @@ public abstract class AbstractOpenApiResource extends SpecFilter {
 		}
 		operation.setSummary(propertyResolverUtils.trimIndent(operation.getSummary()));
 		operation.setDescription(propertyResolverUtils.trimIndent(operation.getDescription()));
+		operation.setGroups(propertyResolverUtils.trimIndent(operation.getGroups()));
 	}
 
 	/**
@@ -610,6 +611,11 @@ public abstract class AbstractOpenApiResource extends SpecFilter {
 
 			// compute tags
 			operation = openAPIService.buildTags(handlerMethod, operation, openAPI, locale);
+
+			// 分组
+			if (apiOperation != null) {
+				operation.setGroups(apiOperation.groups().getSimpleName());
+			}
 
 			io.swagger.v3.oas.annotations.parameters.RequestBody requestBodyDoc = AnnotatedElementUtils.findMergedAnnotation(method,
 					io.swagger.v3.oas.annotations.parameters.RequestBody.class);

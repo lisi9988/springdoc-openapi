@@ -3,8 +3,8 @@
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<parent>
 		<artifactId>springdoc-openapi-tests</artifactId>
-		<groupId>org.springdoc</groupId>
-		<version>2.8.10-SNAPSHOT</version>
+		<groupId>io.github.lisi9988</groupId>
+		<version>2.8.10-SNAPSHOT-group</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
@@ -18,7 +18,7 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.springdoc</groupId>
+			<groupId>io.github.lisi9988</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>

@@ -41,6 +41,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import io.swagger.v3.core.util.AnnotationsUtils;
@@ -261,6 +263,9 @@ public class GenericParameterService {
 
 		if (paramDoc.getExplode() == null)
 			paramDoc.setExplode(paramCalcul.getExplode());
+
+		if (paramDoc.getGroups() == null)
+			paramDoc.setGroups(paramCalcul.getGroups());
 	}
 
 	/**
@@ -291,8 +296,7 @@ public class GenericParameterService {
 		}
 		if (parameterDoc.deprecated())
 			parameter.setDeprecated(parameterDoc.deprecated());
-		if (parameterDoc.required())
-			parameter.setRequired(parameterDoc.required());
+		parameter.setRequired(parameterDoc.required());
 		if (parameterDoc.allowEmptyValue())
 			parameter.setAllowEmptyValue(parameterDoc.allowEmptyValue());
 		if (parameterDoc.allowReserved())
@@ -355,6 +359,9 @@ public class GenericParameterService {
 			}
 			if (isOpenapi31())
 				handleSchemaTypes(schema);
+			if (parameterDoc.schema() != null && parameterDoc.schema().groups() != null) {
+				parameter.setGroups(Stream.of(parameterDoc.schema().groups()).map(Class::getSimpleName).collect(Collectors.toList()));
+			}
 			parameter.setSchema(schema);
 		}
 	}

@@ -139,6 +139,11 @@ public class Builder {
 	private boolean ignoreJsonView;
 
 	/**
+	 * groups
+	 */
+	private Class<?> groups;
+
+	/**
 	 * Instantiates a new Operation builder.
 	 */
 	private Builder() {
@@ -330,6 +335,17 @@ public class Builder {
 	}
 
 	/**
+	 * 分组 operation builder.
+	 *
+	 * @param groups 分组
+	 * @return the operation builder
+	 */
+	public Builder groups(Class<?> groups) {
+		this.groups = groups;
+		return this;
+	}
+
+	/**
 	 * Bean class operation builder.
 	 *
 	 * @param beanClass the bean class
@@ -448,6 +464,11 @@ public class Builder {
 			@Override
 			public boolean ignoreJsonView() {
 				return ignoreJsonView;
+			}
+
+			@Override
+			public Class<?> groups() {
+				return groups;
 			}
 		};
 

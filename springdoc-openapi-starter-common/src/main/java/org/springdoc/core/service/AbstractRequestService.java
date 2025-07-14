@@ -287,7 +287,7 @@ public abstract class AbstractRequestService {
 		if (pNames == null || Arrays.stream(pNames).anyMatch(Objects::isNull))
 			pNames = reflectionParametersNames;
 		// Process: DelegatingMethodParameterCustomizer
-		parameters = DelegatingMethodParameter.customize(pNames, parameters, parameterBuilder.getOptionalDelegatingMethodParameterCustomizers(), this.defaultFlatParamObject);
+		parameters = DelegatingMethodParameter.customize(pNames, parameters, parameterBuilder.getOptionalDelegatingMethodParameterCustomizers(), this.defaultFlatParamObject, isRequestBodyParam(handlerMethod));
 		RequestBodyInfo requestBodyInfo = new RequestBodyInfo();
 		List<Parameter> operationParameters = (operation.getParameters() != null) ? operation.getParameters() : new ArrayList<>();
 		Map<ParameterId, io.swagger.v3.oas.annotations.Parameter> parametersDocMap = getApiParameters(handlerMethod.getMethod());
@@ -810,4 +810,22 @@ public abstract class AbstractRequestService {
 		return false;
 	}
 
+	/**
+	 * Is RequestBody param boolean.
+	 *
+	 * @param handlerMethod HandlerMethod
+	 * @return boolean
+	 * @author Tomcat
+	 */
+	private boolean isRequestBodyParam(HandlerMethod handlerMethod) {
+		Annotation[][] parameterAnnotations = handlerMethod.getMethod().getParameterAnnotations();
+		if (parameterAnnotations.length == 0) {
+			return false;
+		}
+		Annotation[] parameterAnnotation = handlerMethod.getMethod().getParameterAnnotations()[0];
+		if (parameterAnnotation.length == 0) {
+			return false;
+		}
+		return parameterAnnotation[0].annotationType().equals(org.springframework.web.bind.annotation.RequestBody.class);
+	}
 }

@@ -300,6 +300,11 @@ public class Builder {
 	private String $dynamicAnchor = "";
 
 	/**
+	 * The Dynamic Ref.
+	 */
+	private String $dynamicRef = "";
+
+	/**
 	 * The Content encoding.
 	 */
 	private String contentEncoding = "";
@@ -403,6 +408,13 @@ public class Builder {
 	 * The Const.
 	 */
 	private String _const = "";
+
+	/**
+	 * The list of optional groups
+	 *
+	 * @return an optional array of groups
+	 */
+	private Class<?>[] groups = {};
 
 	/**
 	 * Instantiates a new Schema builder.
@@ -816,6 +828,17 @@ public class Builder {
 	}
 
 	/**
+	 * 参数分数
+	 *
+	 * @param groups 分组
+	 * @return the schema builder
+	 */
+	public Builder groups(Class<?>[] groups) {
+		this.groups = groups;
+		return this;
+	}
+
+	/**
 	 * Required mode builder.
 	 *
 	 * @param requiredMode the required mode
@@ -1150,6 +1173,11 @@ public class Builder {
 			}
 
 			@Override
+			public String $dynamicRef() {
+				return $dynamicRef;
+			}
+
+			@Override
 			public String contentEncoding() {
 				return contentEncoding;
 			}
@@ -1262,6 +1290,11 @@ public class Builder {
 			@Override
 			public SchemaResolution schemaResolution() {
 				return schemaResolution;
+			}
+
+			@Override
+			public Class<?>[] groups() {
+				return groups;
 			}
 		};
 	}
