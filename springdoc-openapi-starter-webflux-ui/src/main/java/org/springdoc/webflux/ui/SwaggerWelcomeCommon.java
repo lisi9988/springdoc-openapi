@@ -39,6 +39,7 @@ import reactor.core.publisher.Mono;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.web.util.ForwardedHeaderUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.springdoc.core.utils.Constants.DEFAULT_WEB_JARS_PREFIX_URL;
@@ -123,7 +124,7 @@ public abstract class SwaggerWelcomeCommon extends AbstractSwaggerWelcome {
 	void buildFromCurrentContextPath(SwaggerUiConfigParameters swaggerUiConfigParameters, ServerHttpRequest request) {
 		super.init(swaggerUiConfigParameters);
 		swaggerUiConfigParameters.setContextPath(request.getPath().contextPath().value());
-		String url = UriComponentsBuilder.fromHttpRequest(request).toUriString();
+		String url = ForwardedHeaderUtils.adaptFromForwardedHeaders(request.getURI(), request.getHeaders()).toUriString();
 		String target = UriComponentsBuilder.fromPath(request.getPath().contextPath().value()).toUriString();
 		int endIndex = url.indexOf(target) + target.length();
 		if (endIndex > 0) {
