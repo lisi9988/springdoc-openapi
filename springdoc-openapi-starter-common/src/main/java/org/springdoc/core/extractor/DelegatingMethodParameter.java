@@ -133,12 +133,13 @@ public class DelegatingMethodParameter extends MethodParameter {
 	 * @param pNames                                       the p names
 	 * @param parameters                                   the parameters
 	 * @param optionalDelegatingMethodParameterCustomizers the optional list delegating method parameter customizer
+	 * @param methodParameterPojoExtractor                 the method parameter pojo extractor
 	 * @param defaultFlatParamObject                       the default flat param object
 	 * @param isRequestBodyParam                           Is RequestBody param boolean.
 	 * @return the method parameter [ ]
 	 */
 	public static MethodParameter[] customize(String[] pNames, MethodParameter[] parameters,
-			Optional<List<DelegatingMethodParameterCustomizer>> optionalDelegatingMethodParameterCustomizers, boolean defaultFlatParamObject, boolean isRequestBodyParam) {
+			Optional<List<DelegatingMethodParameterCustomizer>> optionalDelegatingMethodParameterCustomizers, MethodParameterPojoExtractor methodParameterPojoExtractor, boolean defaultFlatParamObject, boolean isRequestBodyParam) {
 		List<MethodParameter> explodedParameters = new ArrayList<>();
 		for (int i = 0; i < parameters.length; ++i) {
 			MethodParameter p = parameters[i];
@@ -150,7 +151,7 @@ public class DelegatingMethodParameter extends MethodParameter {
 			if (!MethodParameterPojoExtractor.isSimpleType(paramClass)
 					&& (hasFlatAnnotation || (defaultFlatParamObject && !hasNotFlatAnnotation && !AbstractRequestService.isRequestTypeToIgnore(paramClass)))) {
 				List<MethodParameter> flatParams = new CopyOnWriteArrayList<>();
-				MethodParameterPojoExtractor.extractFrom(paramClass).forEach(flatParams::add);
+				methodParameterPojoExtractor.extractFrom(paramClass).forEach(flatParams::add);
 				optionalDelegatingMethodParameterCustomizers.orElseGet(ArrayList::new).forEach(cz -> cz.customizeList(p, flatParams));
 				explodedParameters.addAll(flatParams);
 			}

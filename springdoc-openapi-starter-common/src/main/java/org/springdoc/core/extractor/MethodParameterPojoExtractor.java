@@ -80,6 +80,11 @@ import static org.springdoc.core.utils.Constants.DOT;
 public class MethodParameterPojoExtractor {
 
 	/**
+	 * The Schema utils.
+	 */
+	private final SchemaUtils schemaUtils;
+	
+	/**
 	 * The constant SIMPLE_TYPE_PREDICATES.
 	 */
 	private static final List<Predicate<Class<?>>> SIMPLE_TYPE_PREDICATES = new ArrayList<>();
@@ -125,7 +130,8 @@ public class MethodParameterPojoExtractor {
 	/**
 	 * Instantiates a new Method parameter pojo extractor.
 	 */
-	private MethodParameterPojoExtractor() {
+	public MethodParameterPojoExtractor(SchemaUtils schemaUtils) {
+		this.schemaUtils = schemaUtils;
 	}
 
 	/**
@@ -134,7 +140,7 @@ public class MethodParameterPojoExtractor {
 	 * @param clazz the clazz
 	 * @return the stream
 	 */
-	static Stream<MethodParameter> extractFrom(Class<?> clazz) {
+	Stream<MethodParameter> extractFrom(Class<?> clazz) {
 		return extractFrom(clazz, "", true);
 	}
 
@@ -146,7 +152,7 @@ public class MethodParameterPojoExtractor {
 	 * @param parentRequired  whether the field that hold the class currently being inspected was required or optional
 	 * @return the stream
 	 */
-	private static Stream<MethodParameter> extractFrom(Class<?> clazz, String fieldNamePrefix, boolean parentRequired) {
+	private Stream<MethodParameter> extractFrom(Class<?> clazz, String fieldNamePrefix, boolean parentRequired) {
 		return allFieldsOf(clazz).stream()
 				.filter(field -> !field.getType().equals(clazz))
 				.flatMap(f -> fromGetterOfField(clazz, f, fieldNamePrefix, parentRequired))
@@ -162,7 +168,7 @@ public class MethodParameterPojoExtractor {
 	 * @param parentRequired  whether the field that holds the class currently being examined was required or optional
 	 * @return the stream
 	 */
-	private static Stream<MethodParameter> fromGetterOfField(Class<?> paramClass, Field field, String fieldNamePrefix, boolean parentRequired) {
+	private Stream<MethodParameter> fromGetterOfField(Class<?> paramClass, Field field, String fieldNamePrefix, boolean parentRequired) {
 		Class<?> type = extractType(paramClass, field);
 
 		if (Objects.isNull(type))
@@ -178,7 +184,7 @@ public class MethodParameterPojoExtractor {
 				return Stream.empty();
 			}
 			String prefix = fieldNamePrefix + resolveName(parameter, schema).orElse(field.getName()) + DOT;
-			boolean fieldRequired = SchemaUtils.fieldRequired(field, schema, parameter);
+			boolean fieldRequired = schemaUtils.fieldRequired(field, schema, parameter);
 			return extractFrom(type, prefix, parentRequired && fieldRequired);
 		}
 	}
@@ -236,12 +242,12 @@ public class MethodParameterPojoExtractor {
 	 * @param fieldNamePrefix the field name prefix
 	 * @return the stream
 	 */
-	private static Stream<MethodParameter> fromSimpleClass(Class<?> paramClass, Field field, String fieldNamePrefix, boolean parentRequired) {
+	private Stream<MethodParameter> fromSimpleClass(Class<?> paramClass, Field field, String fieldNamePrefix, boolean parentRequired) {
 		Annotation[] fieldAnnotations = field.getDeclaredAnnotations();
 		try {
 			Parameter parameter = field.getAnnotation(Parameter.class);
 			Schema schema = field.getAnnotation(Schema.class);
-			boolean fieldRequired = SchemaUtils.fieldRequired(field, schema, parameter);
+			boolean fieldRequired = schemaUtils.fieldRequired(field, schema, parameter);
 
 			boolean paramRequired = parentRequired && fieldRequired;
 			if (paramClass.getSuperclass() != null && paramClass.isRecord()) {

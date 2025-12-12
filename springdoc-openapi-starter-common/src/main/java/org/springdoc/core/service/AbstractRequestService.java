@@ -68,15 +68,21 @@ import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.parameters.RequestBody;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springdoc.core.customizers.DelegatingMethodParameterCustomizer;
 import org.springdoc.core.customizers.ParameterCustomizer;
+import org.springdoc.core.customizers.SpringDocCustomizers;
 import org.springdoc.core.discoverer.SpringDocParameterNameDiscoverer;
 import org.springdoc.core.extractor.DelegatingMethodParameter;
+import org.springdoc.core.extractor.MethodParameterPojoExtractor;
 import org.springdoc.core.models.MethodAttributes;
 import org.springdoc.core.models.ParameterId;
 import org.springdoc.core.models.ParameterInfo;
 import org.springdoc.core.models.RequestBodyInfo;
 import org.springdoc.core.properties.SpringDocConfigProperties.ApiDocs.OpenApiVersion;
 import org.springdoc.core.providers.JavadocProvider;
+import org.springdoc.core.providers.ObjectMapperProvider;
 import org.springdoc.core.utils.SchemaUtils;
 import org.springdoc.core.utils.SpringDocAnnotationsUtils;
 
@@ -102,6 +108,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.springdoc.core.converters.SchemaPropertyDeprecatingConverter.containsDeprecatedAnnotation;
 import static org.springdoc.core.service.GenericParameterService.isFile;
+import static org.springdoc.core.utils.SpringDocUtils.cloneViaJson;
 import static org.springdoc.core.utils.SpringDocUtils.getParameterAnnotations;
 import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
@@ -112,6 +119,11 @@ import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
  * @author bnasslahsen
  */
 public abstract class AbstractRequestService {
+
+	/**
+	 * The constant LOGGER.
+	 */
+	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractRequestService.class);
 
 	/**
 	 * The constant PARAM_TYPES_TO_IGNORE.
@@ -170,23 +182,36 @@ public abstract class AbstractRequestService {
 	 */
 	private boolean defaultSupportFormData;
 
+	/**
+	 * The Optional delegating method parameter customizers.
+	 */
+	private final Optional<List<DelegatingMethodParameterCustomizer>> optionalDelegatingMethodParameterCustomizers;
+
+	/**
+	 * The Method parameter pojo extractor.
+	 */
+	private final MethodParameterPojoExtractor methodParameterPojoExtractor;
 
 	/**
 	 * Instantiates a new Abstract request builder.
 	 *
 	 * @param parameterBuilder                      the parameter builder
 	 * @param requestBodyService                    the request body builder
-	 * @param parameterCustomizers                  the parameter customizers
+	 * @param springDocCustomizers                  the spring doc customizers
 	 * @param localSpringDocParameterNameDiscoverer the local spring doc parameter name discoverer
+	 * @param methodParameterPojoExtractor          the method parameter pojo extractor
 	 */
 	protected AbstractRequestService(GenericParameterService parameterBuilder, RequestBodyService requestBodyService,
-			Optional<List<ParameterCustomizer>> parameterCustomizers,
-			SpringDocParameterNameDiscoverer localSpringDocParameterNameDiscoverer) {
+			SpringDocCustomizers springDocCustomizers,
+			SpringDocParameterNameDiscoverer localSpringDocParameterNameDiscoverer,
+			MethodParameterPojoExtractor methodParameterPojoExtractor) {
 		super();
 		this.parameterBuilder = parameterBuilder;
 		this.requestBodyService = requestBodyService;
+		this.optionalDelegatingMethodParameterCustomizers = springDocCustomizers.getOptionalDelegatingMethodParameterCustomizers();
+		this.methodParameterPojoExtractor = methodParameterPojoExtractor;
+		this.parameterCustomizers = springDocCustomizers.getParameterCustomizers();
 		parameterCustomizers.ifPresent(customizers -> customizers.removeIf(Objects::isNull));
-		this.parameterCustomizers = parameterCustomizers;
 		this.localSpringDocParameterNameDiscoverer = localSpringDocParameterNameDiscoverer;
 		this.defaultFlatParamObject = parameterBuilder.getPropertyResolverUtils().getSpringDocConfigProperties().isDefaultFlatParamObject();
 		this.defaultSupportFormData = parameterBuilder.getPropertyResolverUtils().getSpringDocConfigProperties().isDefaultSupportFormData();
@@ -249,17 +274,6 @@ public abstract class AbstractRequestService {
 			map.put(parameterId, parameter);
 		}
 		return map.values();
-	}
-
-	/**
-	 * deprecated use {@link SchemaUtils#hasNotNullAnnotation(Collection)}
-	 *
-	 * @param annotationSimpleNames the annotation simple names
-	 * @return boolean
-	 */
-	@Deprecated(forRemoval = true)
-	public static boolean hasNotNullAnnotation(Collection<String> annotationSimpleNames) {
-		return SchemaUtils.hasNotNullAnnotation(annotationSimpleNames);
 	}
 
 	/**
@@ -400,7 +414,12 @@ public abstract class AbstractRequestService {
 	 */
 	private LinkedHashMap<ParameterId, Parameter> getParameterLinkedHashMap(Components components, MethodAttributes methodAttributes, List<Parameter> operationParameters, Map<ParameterId, io.swagger.v3.oas.annotations.Parameter> parametersDocMap) {
 		LinkedHashMap<ParameterId, Parameter> map = operationParameters.stream().collect(Collectors.toMap(ParameterId::new, parameter -> parameter, (u, v) -> {
-			throw new IllegalStateException(String.format("Duplicate key %s", u));
+			LOGGER.warn(
+					"Duplicate OpenAPI parameter detected: name='{}', in='{}'. Keeping the first found and ignoring the rest. " +
+							"Declare the parameter only once.",
+					u.getName(), u.getIn()
+			);
+			return u;
 		}, LinkedHashMap::new));
 
 		for (Entry<ParameterId, io.swagger.v3.oas.annotations.Parameter> entry : parametersDocMap.entrySet()) {
@@ -664,7 +683,9 @@ public abstract class AbstractRequestService {
 					java.lang.reflect.AnnotatedType[] typeArgs = paramType.getAnnotatedActualTypeArguments();
 					for (java.lang.reflect.AnnotatedType typeArg : typeArgs) {
 						List<Annotation> genericAnnotations = Arrays.stream(typeArg.getAnnotations()).toList();
-						SchemaUtils.applyValidationsToSchema(schema.getItems(), genericAnnotations, openapiVersion);
+						Schema schemaItemsClone = cloneViaJson(schema.getItems(), Schema.class,  ObjectMapperProvider.createJson(parameterBuilder.getPropertyResolverUtils().getSpringDocConfigProperties()));
+						schema.items(schemaItemsClone);
+						SchemaUtils.applyValidationsToSchema(schemaItemsClone, genericAnnotations, openapiVersion);
 					}
 				}
 			}
@@ -829,6 +850,23 @@ public abstract class AbstractRequestService {
 		return false;
 	}
 
+	/**
+	 * Gets optional delegating method parameter customizers.
+	 *
+	 * @return the optional delegating method parameter customizers
+	 */
+	public Optional<List<DelegatingMethodParameterCustomizer>> getOptionalDelegatingMethodParameterCustomizers() {
+		return optionalDelegatingMethodParameterCustomizers;
+	}
+
+	/**
+	 * Gets method parameter pojo extractor.
+	 *
+	 * @return the method parameter pojo extractor
+	 */
+	public MethodParameterPojoExtractor getMethodParameterPojoExtractor() {
+		return methodParameterPojoExtractor;
+	}
 	/**
 	 * Is RequestBody param boolean.
 	 *

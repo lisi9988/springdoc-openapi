@@ -27,11 +27,10 @@
 package org.springdoc.core.configuration
 
 import org.springdoc.core.converters.KotlinInlineClassUnwrappingConverter
-import org.springdoc.core.customizers.DelegatingMethodParameterCustomizer
 import org.springdoc.core.customizers.KotlinDeprecatedPropertyCustomizer
-import org.springdoc.core.extractor.DelegatingMethodParameter
 import org.springdoc.core.providers.ObjectMapperProvider
 import org.springdoc.core.utils.Constants
+import org.springdoc.core.utils.SpringDocKotlinUtils
 import org.springdoc.core.utils.SpringDocUtils
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
@@ -43,7 +42,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Lazy
 import kotlin.coroutines.Continuation
-import kotlin.reflect.full.primaryConstructor
 
 /**
  * The type Spring doc kotlin configuration.
@@ -69,21 +67,6 @@ class SpringDocKotlinConfiguration() {
 			.addDeprecatedType(Deprecated::class.java)
 	}
 
-	@Bean
-	@ConditionalOnProperty(
-		name = [Constants.SPRINGDOC_NULLABLE_REQUEST_PARAMETER_ENABLED],
-		matchIfMissing = true
-	)
-	@Lazy(false)
-	fun kotlinDefaultsInParamObjects(): DelegatingMethodParameterCustomizer =
-		DelegatingMethodParameterCustomizer { _, mp ->
-			val kProp = mp.containingClass.kotlin.primaryConstructor
-				?.parameters
-				?.firstOrNull { it.name == mp.parameterName }
-			if (kProp?.isOptional == true)
-				(mp as DelegatingMethodParameter).isNotRequired = true
-		}
-	
 	@ConditionalOnClass(name = ["kotlin.reflect.full.KClasses"])
 	class KotlinReflectDependingConfiguration {
 
@@ -100,6 +83,15 @@ class SpringDocKotlinConfiguration() {
 		fun kotlinModelConverter(objectMapperProvider: ObjectMapperProvider): KotlinInlineClassUnwrappingConverter {
 			return KotlinInlineClassUnwrappingConverter(objectMapperProvider)
 		}
+
+		@Bean
+		@ConditionalOnProperty(
+			name = [Constants.SPRINGDOC_NULLABLE_REQUEST_PARAMETER_ENABLED],
+			matchIfMissing = true
+		)
+		@Lazy(false)
+		fun springDocKotlinUtils(): SpringDocKotlinUtils =
+			SpringDocKotlinUtils()
 	}
 
 }

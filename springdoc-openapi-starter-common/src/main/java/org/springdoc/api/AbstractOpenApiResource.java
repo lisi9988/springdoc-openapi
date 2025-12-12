@@ -109,6 +109,7 @@ import org.springdoc.core.service.GenericResponseService;
 import org.springdoc.core.service.OpenAPIService;
 import org.springdoc.core.service.OperationService;
 import org.springdoc.core.utils.PropertyResolverUtils;
+import org.springdoc.core.utils.SpringDocAnnotationsUtils;
 import org.springdoc.core.utils.SpringDocUtils;
 
 import org.springframework.aop.support.AopUtils;
@@ -131,6 +132,7 @@ import static org.springdoc.core.utils.Constants.ACTUATOR_DEFAULT_GROUP;
 import static org.springdoc.core.utils.Constants.DOT;
 import static org.springdoc.core.utils.Constants.OPERATION_ATTRIBUTE;
 import static org.springdoc.core.utils.Constants.SPRING_MVC_SERVLET_PATH;
+import static org.springdoc.core.utils.SpringDocUtils.cloneViaJson;
 import static org.springframework.util.AntPathMatcher.DEFAULT_PATH_SEPARATOR;
 
 /**
@@ -141,6 +143,7 @@ import static org.springframework.util.AntPathMatcher.DEFAULT_PATH_SEPARATOR;
  * @author hyeonisism
  * @author doljae
  * @author zdary
+ * @author Haotian Zhang
  */
 public abstract class AbstractOpenApiResource extends SpecFilter {
 
@@ -338,9 +341,20 @@ public abstract class AbstractOpenApiResource extends SpecFilter {
 		this.getOpenApi(null, Locale.getDefault());
 	}
 
-	/**
-	 * Gets open api.
-	 *
+    /**
+     * Gets open api.
+     *
+     * @param locale the locale
+     * @return the open api
+     */
+    protected OpenAPI getOpenApi(Locale locale) {
+        return this.getOpenApi(null, locale);
+    }
+
+    /**
+     * Gets open api.
+     *
+     * @param serverBaseUrl the server base url
 	 * @param locale the locale
 	 * @return the open api
 	 */
@@ -392,15 +406,8 @@ public abstract class AbstractOpenApiResource extends SpecFilter {
 
 				// run the optional customizers
 				List<Server> servers = openAPI.getServers();
-				List<Server> serversCopy = null;
-				try {
-					serversCopy = springDocProviders.jsonMapper()
-							.readValue(springDocProviders.jsonMapper().writeValueAsString(servers), new TypeReference<List<Server>>() {});
-				}
-				catch (JsonProcessingException e) {
-					LOGGER.warn("Json Processing Exception occurred: {}", e.getMessage());
-				}
-
+				List<Server> serversCopy = cloneViaJson(servers,  new TypeReference<List<Server>>() {},  springDocProviders.jsonMapper());
+				
 				openAPIService.getContext().getBeansOfType(OpenApiLocaleCustomizer.class).values().forEach(openApiLocaleCustomizer -> openApiLocaleCustomizer.customise(openAPI, finalLocale));
 				springDocCustomizers.getOpenApiCustomizers().ifPresent(apiCustomizers -> apiCustomizers.forEach(openApiCustomizer -> openApiCustomizer.customise(openAPI)));
 				if (!CollectionUtils.isEmpty(openAPI.getServers()) && !openAPI.getServers().equals(serversCopy))
@@ -419,6 +426,7 @@ public abstract class AbstractOpenApiResource extends SpecFilter {
 			return openAPI;
 		}
 		finally {
+			SpringDocAnnotationsUtils.clearCache(operationParser.getJavadocProvider());
 			this.reentrantLock.unlock();
 		}
 	}

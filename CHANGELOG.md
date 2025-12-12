@@ -5,6 +5,64 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.14] - 2025-11-02
+
+### Added
+
+- #3090 - Add logs to notify when SpringDocs/Scalar is enabled because SpringDocs/Scalar is enabled by default
+
+### Changed
+
+- Upgrade swagger-ui to v5.30.1
+- Upgrade swagger-core to v2.2.38
+- Upgrade spring-boot to v3.5.7
+- Upgrade commons-lang3 to v3.18.0
+- Upgrade scalar to v0.3.12
+
+### Fixed
+
+- #3107 - Fix:compatible with lower version of getOpenApi().
+- #3121 - NPE in KotlinDeprecatedPropertyCustomizer - resolvedSchema is null
+
+## [2.8.13] - 2025-09-07
+
+### Added
+
+- #3084 - Add Scalar Support
+
+### Changed
+
+- Upgrade swagger-ui to v5.28.1
+
+### Fixed
+
+- #3076 - With oneOf the response schema contains an extra type: string
+
+## [2.8.12] - 2025-09-01
+
+### Changed
+
+- Upgrade swagger-ui to v5.28.0
+
+### Fixed
+
+- #3073 - Duplicate key class Parameter when documenting two GET methods with same path and PathVariable.
+- #3071 - @io.swagger.v3.oas.annotations.parameters.RequestBody does not work well with @RequestPart
+- #3066 - Parameter is now required after upgrading to springdoc-openapi 2.8.10
+
+## [2.8.11] - 2025-08-23
+
+### Added
+
+- #3065 - javadoc and overall performance optimization
+
+### Changed
+
+- Upgrade spring-boot to v3.5.5
+
+### Fixed
+
+- #3064 -ClassNotFoundException: kotlin.reflect.full.KClasses
 
 ## [2.8.10] - 2025-08-20
 
