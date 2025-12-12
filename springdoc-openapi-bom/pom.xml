@@ -36,12 +36,12 @@
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.springdoc</groupId>
+				<groupId>io.github.lisi9988</groupId>
 				<artifactId>springdoc-openapi-starter-webmvc-scalar</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.springdoc</groupId>
+				<groupId>io.github.lisi9988</groupId>
 				<artifactId>springdoc-openapi-starter-webflux-scalar</artifactId>
 				<version>${project.version}</version>
 			</dependency>

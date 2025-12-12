@@ -169,7 +169,7 @@ public class DataRestRequestService {
 	 */
 	public void buildCommonParameters(OpenAPI openAPI, RequestMethod requestMethod, MethodAttributes methodAttributes, Operation operation, String[] pNames, MethodParameter[] parameters,
 			DataRestRepository dataRestRepository) {
-		parameters = DelegatingMethodParameter.customize(pNames, parameters, parameterBuilder.getOptionalDelegatingMethodParameterCustomizers(), requestBuilder.isDefaultFlatParamObject(), false);
+		parameters = DelegatingMethodParameter.customize(pNames, parameters, this.optionalDelegatingMethodParameterCustomizers, this.methodParameterPojoExtractor, requestBuilder.isDefaultFlatParamObject(),false);
 		Class<?> domainType = dataRestRepository.getDomainType();
 		for (MethodParameter methodParameter : parameters) {
 			final String pName = methodParameter.getParameterName();

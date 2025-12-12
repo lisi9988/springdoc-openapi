@@ -157,7 +157,7 @@ public class DelegatingMethodParameter extends MethodParameter {
 			}
 			else if (!isRequestBodyParam && !MethodParameterPojoExtractor.isSimpleType(paramClass) && !AbstractRequestService.isRequestTypeToIgnore(paramClass) && !p.hasParameterAnnotation(Parameter.class) && !p.hasParameterAnnotation(RequestParam.class)) {
 				List<MethodParameter> flatParams = new CopyOnWriteArrayList<>();
-				MethodParameterPojoExtractor.extractFrom(paramClass).forEach(flatParams::add);
+				methodParameterPojoExtractor.extractFrom(paramClass).forEach(flatParams::add);
 				optionalDelegatingMethodParameterCustomizers.orElseGet(ArrayList::new).forEach(cz -> cz.customizeList(p, flatParams));
 				explodedParameters.addAll(flatParams);
 			}

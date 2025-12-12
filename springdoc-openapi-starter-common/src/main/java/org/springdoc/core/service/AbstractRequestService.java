@@ -301,7 +301,7 @@ public abstract class AbstractRequestService {
 		if (pNames == null || Arrays.stream(pNames).anyMatch(Objects::isNull))
 			pNames = reflectionParametersNames;
 		// Process: DelegatingMethodParameterCustomizer
-		parameters = DelegatingMethodParameter.customize(pNames, parameters, parameterBuilder.getOptionalDelegatingMethodParameterCustomizers(), this.defaultFlatParamObject, isRequestBodyParam(handlerMethod));
+		parameters = DelegatingMethodParameter.customize(pNames, parameters, optionalDelegatingMethodParameterCustomizers, methodParameterPojoExtractor, this.defaultFlatParamObject, isRequestBodyParam(handlerMethod));
 		RequestBodyInfo requestBodyInfo = new RequestBodyInfo();
 		List<Parameter> operationParameters = (operation.getParameters() != null) ? operation.getParameters() : new ArrayList<>();
 		Map<ParameterId, io.swagger.v3.oas.annotations.Parameter> parametersDocMap = getApiParameters(handlerMethod.getMethod());
