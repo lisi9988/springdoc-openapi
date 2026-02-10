@@ -37,14 +37,15 @@ import org.springdoc.core.configuration.SpringDocConfiguration;
 import org.springdoc.core.properties.SpringDocConfigProperties.ApiDocs.OpenApiVersion;
 import org.springdoc.core.utils.Constants;
 
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Role;
 import org.springframework.http.MediaType;
 
-import static org.springdoc.core.utils.Constants.DEFAULT_WEB_JARS_PREFIX_URL;
 import static org.springdoc.core.utils.Constants.SPRINGDOC_ENABLED;
 
 /**
@@ -57,17 +58,13 @@ import static org.springdoc.core.utils.Constants.SPRINGDOC_ENABLED;
 @ConfigurationProperties(prefix = Constants.SPRINGDOC_PREFIX)
 @ConditionalOnProperty(name = SPRINGDOC_ENABLED, matchIfMissing = true)
 @ConditionalOnBean(SpringDocConfiguration.class)
+@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 public class SpringDocConfigProperties {
 
 	/**
 	 * The Show actuator.
 	 */
 	private boolean showActuator;
-
-	/**
-	 * The Webjars.
-	 */
-	private Webjars webjars = new Webjars();
 
 	/**
 	 * The Api docs.
@@ -787,24 +784,6 @@ public class SpringDocConfigProperties {
 	}
 
 	/**
-	 * Gets webjars.
-	 *
-	 * @return the webjars
-	 */
-	public Webjars getWebjars() {
-		return webjars;
-	}
-
-	/**
-	 * Sets webjars.
-	 *
-	 * @param webjars the webjars
-	 */
-	public void setWebjars(Webjars webjars) {
-		this.webjars = webjars;
-	}
-
-	/**
 	 * Gets api docs.
 	 *
 	 * @return the api docs
@@ -1387,36 +1366,6 @@ public class SpringDocConfigProperties {
 		 */
 		public void setEnabled(boolean enabled) {
 			this.enabled = enabled;
-		}
-	}
-
-	/**
-	 * The type Webjars.
-	 *
-	 * @author bnasslahsen
-	 */
-	public static class Webjars {
-		/**
-		 * The Prefix.
-		 */
-		private String prefix = DEFAULT_WEB_JARS_PREFIX_URL;
-
-		/**
-		 * Gets prefix.
-		 *
-		 * @return the prefix
-		 */
-		public String getPrefix() {
-			return prefix;
-		}
-
-		/**
-		 * Sets prefix.
-		 *
-		 * @param prefix the prefix
-		 */
-		public void setPrefix(String prefix) {
-			this.prefix = prefix;
 		}
 	}
 

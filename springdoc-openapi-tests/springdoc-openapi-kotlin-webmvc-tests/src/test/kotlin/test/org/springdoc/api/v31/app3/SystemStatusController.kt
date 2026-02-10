@@ -30,9 +30,17 @@ data class SystemStatusResponse(
 	val status: SystemStatus
 )
 
+data class Foo(
+	val bar: LinkedHashSet<String>,
+)
+
 @RestController
 @RequestMapping("/status")
 class SystemStatusController {
+
+	@GetMapping("/bar")
+	fun getTestData(): Foo = Foo(bar = linkedSetOf("test"))
+	
 	@GetMapping
 	fun index() = SystemStatusResponse(SystemStatus.OK)
 

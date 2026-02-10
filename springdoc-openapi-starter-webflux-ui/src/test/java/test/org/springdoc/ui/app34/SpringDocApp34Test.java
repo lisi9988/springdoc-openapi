@@ -33,11 +33,14 @@ import org.springframework.test.web.reactive.server.EntityExchangeResult;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@TestPropertySource(properties = "springdoc.swagger-ui.disable-swagger-default-url=true")
+@TestPropertySource(properties = {
+		"springdoc.swagger-ui.disable-swagger-default-url=true",
+		"springdoc.swagger-ui.path=/documentation/swagger-ui.html"
+})
 public class SpringDocApp34Test extends AbstractSpringDocTest {
 
 	@Test
-	void transformed_index_with_oauth() throws Exception {
+	void testWebJarResourceTransformed() {
 		EntityExchangeResult<byte[]> getResult = webTestClient.get().uri("/webjars/swagger-ui/swagger-initializer.js")
 				.exchange()
 				.expectStatus().isOk()
